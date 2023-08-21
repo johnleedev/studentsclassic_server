@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router()
+var cors = require('cors');
+router.use(cors());
 
 router.use(express.json()); // axios 전송 사용하려면 이거 있어야 함
 const { db } = require('../db');
@@ -8,14 +10,16 @@ const axios = require('axios');
 var jwt = require("jsonwebtoken");
 const secretKey = require('../secretKey');
 
+
+router.post('/test', (req, res)=>{
+  console.log(req.body);
+
+})
+
 // 카카오 유저 정보 요청 (email,성별,생일 등) 조회
 router.post('/loginkakao', (req, res)=>{
   const { AccessToken } = req.body;
   
-  testData = {
-    name: '이요한',
-  }
-
   axios ({
     method: 'GET',
     url: 'https://kapi.kakao.com/v2/user/me',
@@ -25,8 +29,7 @@ router.post('/loginkakao', (req, res)=>{
   }).then((result) => {
     //카카오에서 정보 받아 와야 함
     console.log(result);
-    // res.send(true);
-    // res.send(testData);
+    res.send(true);
     res.end();
   }).catch((err)=>{
     console.log('requestUserInfo_error :', err);
@@ -38,6 +41,7 @@ router.post('/loginkakao', (req, res)=>{
 
 // 네이버 로그인시, 회원정보 요청 후 userID 확인하기
 router.post('/loginnaver', (req, res)=>{
+  
   const { AccessToken } = req.body;
   console.log(AccessToken);
   

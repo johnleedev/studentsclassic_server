@@ -13,7 +13,6 @@ router.get('/posts/get', (req, res) => {
   `, function(error, result, fields) {
     if (error) throw error;
     if (result.length > 0) {
-      console.log(result)
       res.send(result);
       res.end();
     } else {              
@@ -91,7 +90,6 @@ router.post('/posts/:postId/delete', (req, res) => {
 // GET /board/comments/:postId - 특정 게시물의 댓글 목록 가져오기
 router.get('/comments/:postId', (req, res) => {
   var postId = parseInt(req.params.postId);
-  console.log(postId)
   db.query(`
   select * from comments where post_id = '${postId}'
   `, function(error, result){
@@ -126,8 +124,6 @@ router.post('/comments', (req, res) => {
 router.get('/posts/:postID/:userName', (req, res) => {
   const postId = req.params.postID;
   const userName = req.params.userName;
-
-  console.log(postId, userName);
 
   db.query(`
     SELECT * FROM isliked WHERE post_id = '${postId}' and userName = '${userName}';
@@ -171,7 +167,6 @@ router.post('/posts/:postID/isliked', (req, res) => {
     `,function(error, result){
     if (error) {throw error}
     if (result.affectedRows > 0) {
-      console.log(postId, userName, userSchool, userSchNum, userPart);
       db.query(`
       DELETE FROM isliked WHERE post_id = ${postId} and userName = '${userName}' and userSchool = '${userSchool}' 
       and userSchNum = '${userSchNum}' and userPart = '${userPart}';
