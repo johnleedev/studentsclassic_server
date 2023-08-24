@@ -30,6 +30,8 @@ router.post('/login/:url', async (req, res) => {
     const userName = url.includes('kakao') ? result.data.kakao_account.name : result.data.response.name;
     const userID = url.includes('kakao') ? result.data.id : result.data.response.id;
     const SECRET_KEY = secretKey.key;
+    const userURL = url.includes('kakao') ? 'kakao' : 'naver';
+    const date = new Date();
 
     // refreshToken 만들기
     const refreshToken = jwt.sign({ type: 'JWT', USER_ID: userID }, SECRET_KEY, {
@@ -42,13 +44,13 @@ router.post('/login/:url', async (req, res) => {
     `, function(error, result){
       if (error) {throw error}
       if (result.length === 0) {  
-        const date = new Date();
         db.query(
           `INSERT IGNORE INTO accesstoken (userID, token, date) VALUES ('${userID}', '${AccessToken}', '${date}')`
         );
         const userData = {}
         userData.email = userEmail;
         userData.name = userName;
+        userData.userURL = userURL;
         userData.refreshToken = refreshToken;
         userData.isUser = false;
         res.json(userData);
@@ -58,8 +60,22 @@ router.post('/login/:url', async (req, res) => {
         const userData = JSON.parse(json);
         userData.refreshToken = refreshToken;
         userData.isUser = true;
-        res.json(userData);
-        res.end();
+
+        if ( userData.userURL === userURL ) {
+          res.json(userData);
+          res.end();
+        } else {
+          db.query(
+            `INSERT IGNORE INTO accesstoken (userID, token, date) VALUES ('${userID}', '${AccessToken}', '${date}')`
+          );
+          db.query(
+            `UPDATE user SET userURL = '${userURL}' WHERE userAccount = '${userData.userAccount}'`
+          );
+          userData.userURL = userURL
+          res.json(userData);
+          res.end();
+        }
+        
     }})
   
 
@@ -109,10 +125,10 @@ router.post('/verifytoken', (req,res)=>{
 
 // logister
 router.post('/logisterdo', function(req, res, next){
-  const { userAccount, userName, userSchool, userSchNum, userPart } = req.body;
+  const { userAccount, userName, userSchool, userSchNum, userPart, userURL } = req.body;
   db.query(`
-  INSERT IGNORE INTO user (userAccount, userName, userSchool, userSchNum, userPart) VALUES 
-  ('${userAccount}', '${userName}', '${userSchool}', '${userSchNum}', '${userPart}');
+  INSERT IGNORE INTO user (userAccount, userName, userSchool, userSchNum, userPart, userURL) VALUES 
+  ('${userAccount}', '${userName}', '${userSchool}', '${userSchNum}', '${userPart}', '${userURL}');
   `,function(error, result){
   if (error) {throw error}
   if (result.affectedRows > 0) {  
@@ -125,21 +141,28 @@ router.post('/logisterdo', function(req, res, next){
 });
 
 
-// router.post('/deleteaccount', function(req, res, next){
-//   const { userAccount, userName, userSchool, userSchNum, userPart } = req.body;
-//   db.query(`
-//   INSERT IGNORE INTO user (userAccount, userName, userSchool, userSchNum, userPart) VALUES 
-//   ('${userAccount}', '${userName}', '${userSchool}', '${userSchNum}', '${userPart}');
-//   `,function(error, result){
-//   if (error) {throw error}
-//   if (result.affectedRows > 0) {  
-//     res.send(userName);
-//     res.end();
-//   } else {
-//     res.send("");  
-//     res.end();
-//   }})
-// });
+router.post('/deleteaccount', function(req, res, next){
+  const { refreshToken, userName, userSchool, userSchNum, userPart } = req.body;
+
+  // 토큰 검증
+  const token = req.body.refreshToken;
+  const copy = jwt.decode(token);
+  const userID = copy.USER_ID;
+    
+  // 회원 정보 삭제
+  db.query(`
+  DELETE FROM user WHERE userName = '${userName}' and userSchool = '${userSchool}' and userSchNum = '${userSchNum}' and userPart = '${userPart}'
+  `,function(error, result){
+  if (error) {throw error}
+  if (result.affectedRows > 0) {  
+    db.query(`DELETE FROM accesstoken WHERE userID = '${userID}'`);
+    res.send(true);
+    res.end();
+  } else {
+    res.send("");  
+    res.end();
+  }})
+});
 
 
 
