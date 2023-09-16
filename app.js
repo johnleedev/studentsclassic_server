@@ -14,10 +14,12 @@ var loginRouter = require('./routes/login')
 var BoardRouter = require('./routes/Board')
 var CompetitionRouter = require('./routes/Competition')
 var NoticeRouter = require('./routes/Notice')
+var Notification = require('./routes/Notification')
 app.use('/login', loginRouter);
 app.use('/board', BoardRouter);
 app.use('/competition', CompetitionRouter);
 app.use('/notice', NoticeRouter);
+app.use('/notification', Notification);
 
 
 app.use(express.static('build'));
@@ -28,7 +30,7 @@ app.use(compression());
 app.use(helmet());
 app.use(cors());
 
-app.listen(80, ()=>{
+app.listen(8000, ()=>{
   console.log('server is running')
 });
 

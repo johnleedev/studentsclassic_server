@@ -164,6 +164,17 @@ router.post('/deleteaccount', function(req, res, next){
   }})
 });
 
+router.post('/loginadmin', function(req, res){
+  const { username, password } = req.body;
+  
+  if (username === 'admin' && password === 'gksksla6985!') {
+    res.send(true);
+    res.end();
+  } else {
+    res.send(false);
+    res.end();
+  }
 
+});
 
 module.exports = router;
