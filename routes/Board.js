@@ -40,9 +40,9 @@ router.post('/posts/:postId/views', (req, res) => {
 
 // 게시글 생성하기
 router.post('/posts', (req, res) => {
-  const { title, content, userName, userSchool, userSchNum, userPart, date } = req.body;
+  const { title, content, userAccount, userName, userSchool, userSchNum, userPart, date } = req.body;
   db.query(`
-  INSERT IGNORE INTO posts (title, content, userName, userSchool, userSchNum, userPart, date) VALUES ('${title}', '${content}', '${userName}', '${userSchool}', '${userSchNum}', '${userPart}', '${date}');
+  INSERT IGNORE INTO posts (title, content, userAccount, userName, userSchool, userSchNum, userPart, date) VALUES ('${title}', '${content}', '${userAccount}', '${userName}', '${userSchool}', '${userSchNum}', '${userPart}', '${date}');
   `,function(error, result){
   if (error) {throw error}
   if (result.affectedRows > 0) {            
