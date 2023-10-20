@@ -260,7 +260,7 @@ router.post('/logisterdo', function(req, res, next){
   `,function(error, result){
   if (error) {throw error}
   if (result.affectedRows > 0) {  
-    res.send(userName);
+    res.send(userAccount);
     res.end();
   } else {
     res.send("");  

@@ -15,11 +15,15 @@ var BoardRouter = require('./routes/Board')
 var CompetitionRouter = require('./routes/Competition')
 var NoticeRouter = require('./routes/Notice')
 var Notification = require('./routes/Notification')
+var Concours = require('./routes/Concours')
+var Concert = require('./routes/Concert')
 app.use('/login', loginRouter);
 app.use('/board', BoardRouter);
 app.use('/competition', CompetitionRouter);
 app.use('/notice', NoticeRouter);
 app.use('/notification', Notification);
+app.use('/concours', Concours);
+app.use('/concert', Concert);
 
 
 app.use(express.static('build'));
@@ -33,7 +37,6 @@ app.use(cors());
 app.listen(80, ()=>{
   console.log('server is running')
 });
-
 
 // Schoollist 데이터 가져오기 ////
 app.get('/schoollist', (req, res) => {
