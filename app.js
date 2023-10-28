@@ -53,6 +53,21 @@ app.get('/schoollist', (req, res) => {
   }})
 });
 
+// Schoollist 데이터 가져오기 ////
+app.get('/getnews', (req, res) => {
+  db.query(`
+  select * from news;
+  `, function(error, result){
+  if (error) {throw error}
+  if (result.length > 0) {
+    res.send(result);
+    res.end();
+  } else {
+    res.send(error);  
+    res.end();
+  }})
+});
+
 
 
 // 리액트 연결하기 ----------------------------------------------------------------- //

@@ -45,8 +45,8 @@ const upload = multer({
 // 콩쿨 게시판 글쓰기
 router.post('/post', upload.array('img'), (req, res) => {
 
-  const { title, concoursPeriodFrom, concoursPeriodUntil, 
-  acceptPeriodFrom, acceptPeriodUntil, location, concoursPlace, superViser, inquiry} = req.query;
+  const {userAccount, title, concoursPeriodFrom, concoursPeriodUntil, 
+  acceptPeriodFrom, acceptPeriodUntil, location, concoursPlace, superViser, inquiry, webPage} = req.query;
 
   const files = req.files;
   const imageNames = [];
@@ -56,11 +56,11 @@ router.post('/post', upload.array('img'), (req, res) => {
   })
 
   db.query(`
-    INSERT IGNORE INTO concours (title, concoursPeriodFrom, concoursPeriodUntil, 
-    acceptPeriodFrom, acceptPeriodUntil, location, concoursPlace, superViser, inquiry,
+    INSERT IGNORE INTO concours (userAccount, title, concoursPeriodFrom, concoursPeriodUntil, 
+    acceptPeriodFrom, acceptPeriodUntil, location, concoursPlace, superViser, inquiry, webPage,
     imageName1, imageName2, imageName3, imageName4, imageName5) VALUES 
-    ('${title}', '${concoursPeriodFrom}', '${concoursPeriodUntil}', '${acceptPeriodFrom}', '${acceptPeriodUntil}',
-    '${location}', '${concoursPlace}', '${superViser}', '${inquiry}',
+    ('${userAccount}', '${title}', '${concoursPeriodFrom}', '${concoursPeriodUntil}', '${acceptPeriodFrom}', '${acceptPeriodUntil}',
+    '${location}', '${concoursPlace}', '${superViser}', '${inquiry}', '${webPage}',
     '${imageNames[0]}', '${imageNames[1]}', '${imageNames[2]}', '${imageNames[3]}', '${imageNames[4]}');
     `, function(error, result){
       if (error) {throw error}

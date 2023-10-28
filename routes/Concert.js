@@ -44,8 +44,8 @@ const upload = multer({
 // 콩쿨 게시판 글쓰기
 router.post('/post', upload.array('img'), (req, res) => {
 
-  const { title, concertDate, concertTime, location, 
-    concertPlace, concertPrice, superViser, inquiry} = req.query;
+  const {userAccount, title, concertDate, concertTime, location, 
+    concertPlace, concertPrice, superViser, inquiry, webPage} = req.query;
 
   const files = req.files;
   const imageNames = [];
@@ -55,11 +55,11 @@ router.post('/post', upload.array('img'), (req, res) => {
   })
 
   db.query(`
-    INSERT IGNORE INTO concert (title, concertDate, concertTime, location, 
-      concertPlace, concertPrice, superViser, inquiry,
+    INSERT IGNORE INTO concert (userAccount, title, concertDate, concertTime, location, 
+      concertPlace, concertPrice, superViser, inquiry, webPage,
       imageName1, imageName2, imageName3, imageName4, imageName5) VALUES 
-    ('${title}', '${concertDate}', '${concertTime}', '${location}', 
-    '${concertPlace}', '${concertPrice}', '${superViser}', '${inquiry}',
+    ('${userAccount}', '${title}', '${concertDate}', '${concertTime}', '${location}', 
+    '${concertPlace}', '${concertPrice}', '${superViser}', '${inquiry}', '${webPage}'
     '${imageNames[0]}', '${imageNames[1]}', '${imageNames[2]}', '${imageNames[3]}', '${imageNames[4]}');
     `, function(error, result){
       if (error) {throw error}
