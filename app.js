@@ -17,6 +17,7 @@ var NoticeRouter = require('./routes/Notice')
 var Notification = require('./routes/Notification')
 var Concours = require('./routes/Concours')
 var Concert = require('./routes/Concert')
+var Recruit = require('./routes/Recruit')
 app.use('/login', loginRouter);
 app.use('/board', BoardRouter);
 app.use('/competition', CompetitionRouter);
@@ -24,6 +25,7 @@ app.use('/notice', NoticeRouter);
 app.use('/notification', Notification);
 app.use('/concours', Concours);
 app.use('/concert', Concert);
+app.use('/recruit', Recruit);
 
 
 app.use(express.static('build'));
@@ -53,7 +55,7 @@ app.get('/schoollist', (req, res) => {
   }})
 });
 
-// Schoollist 데이터 가져오기 ////
+// News 데이터 가져오기 ////
 app.get('/getnews', (req, res) => {
   db.query(`
   select * from news;
@@ -67,6 +69,40 @@ app.get('/getnews', (req, res) => {
     res.end();
   }})
 });
+
+// News 데이터 가져오기 ////
+app.get('/getsuggestions', (req, res) => {
+  db.query(`
+  select * from suggestions;
+  `, function(error, result){
+  if (error) {throw error}
+  if (result.length > 0) {
+    res.send(result);
+    res.end();
+  } else {
+    res.send(error);  
+    res.end();
+  }})
+});
+
+
+// 댓글 입력하기
+app.post('/suggestion', (req, res) => {
+  const { content, date, userAccount, userName, userSchool, userSchNum, userPart } = req.body;
+  db.query(`
+  INSERT IGNORE INTO suggestions (content, userAccount, userName, userSchool, userSchNum, userPart, date) VALUES 
+   ('${content}', '${userAccount}', '${userName}', '${userSchool}', '${userSchNum}', '${userPart}', '${date}');
+  `, function(error, result){
+  if (error) {throw error}
+  if (result.affectedRows > 0) {
+    res.send(true);
+    res.end();
+  } else {
+    res.send(error);  
+    res.end();
+  }})
+});
+
 
 
 

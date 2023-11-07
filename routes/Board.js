@@ -105,10 +105,10 @@ router.get('/comments/:postId', (req, res) => {
 
 // 댓글 입력하기
 router.post('/comments', (req, res) => {
-  const { postId, commentText, date, userName, userSchool, userSchNum, userPart } = req.body;
+  const { postId, commentText, date, userAccount, userName, userSchool, userSchNum, userPart } = req.body;
   db.query(`
-  INSERT IGNORE INTO comments (post_id, content, userName, userSchool, userSchNum, userPart, date) VALUES 
-   ('${postId}', '${commentText}', '${userName}', '${userSchool}', '${userSchNum}', '${userPart}', '${date}');
+  INSERT IGNORE INTO comments (post_id, content, userAccount, userName, userSchool, userSchNum, userPart, date) VALUES 
+   ('${postId}', '${commentText}', '${userAccount}', '${userName}', '${userSchool}', '${userSchNum}', '${userPart}', '${date}');
   `, function(error, result){
   if (error) {throw error}
   if (result.affectedRows > 0) {
@@ -120,13 +120,37 @@ router.post('/comments', (req, res) => {
   }})
 });
 
-// 좋아요 게시글 데이터 가져오기
-router.get('/posts/:postID/:userName', (req, res) => {
-  const postId = req.params.postID;
-  const userName = req.params.userName;
 
+// 게시글 삭제하기
+router.post('/comments/delete', (req, res) => {
+  const { ID, post_id, userAccount } = req.body;
   db.query(`
-    SELECT * FROM isliked WHERE post_id = '${postId}' and userName = '${userName}';
+  DELETE FROM comments WHERE id = '${ID}' and post_id = '${post_id}' and userAccount = '${userAccount}';
+  `,function(error, result){
+  if (error) {throw error}
+  if (result.affectedRows > 0) {
+    res.send(true);
+    res.end();
+  } else {
+    res.send(error);  
+    res.end();
+  }})
+});
+
+
+
+
+
+
+
+
+
+// 좋아요 게시글 데이터 가져오기
+router.get('/posts/:postID/:userAccount', (req, res) => {
+  const postId = req.params.postID;
+  const userAccount = req.params.userAccount;
+  db.query(`
+    SELECT * FROM isliked WHERE post_id = '${postId}' and userAccount = '${userAccount}';
   `, function(error, result) {
     if (error) throw error;
     if (result.length > 0) {
@@ -141,7 +165,7 @@ router.get('/posts/:postID/:userName', (req, res) => {
 
 // 게시글 좋아요 버튼, 토글 관리
 router.post('/posts/:postID/isliked', (req, res) => {
-  const { isLiked, postId, userName, userSchool, userSchNum, userPart } = req.body;
+  const { isLiked, postId, userAccount } = req.body;
   if (isLiked === false) {
     db.query(`
     UPDATE posts SET isLiked = isLiked + 1 WHERE id = ${postId};
@@ -149,8 +173,8 @@ router.post('/posts/:postID/isliked', (req, res) => {
     if (error) {throw error}
     if (result.affectedRows > 0) {
       db.query(`
-      INSERT IGNORE INTO isliked (post_id, isliked, userName, userSchool, userSchNum, userPart) VALUES 
-          ('${postId}', 'true', '${userName}', '${userSchool}', '${userSchNum}', '${userPart}');
+      INSERT IGNORE INTO isliked (post_id, isliked, userAccount) VALUES 
+          ('${postId}', 'true', '${userAccount}');
       `,function(error, result){
       if (error) {throw error}
       if (result.affectedRows > 0) {
@@ -168,8 +192,7 @@ router.post('/posts/:postID/isliked', (req, res) => {
     if (error) {throw error}
     if (result.affectedRows > 0) {
       db.query(`
-      DELETE FROM isliked WHERE post_id = ${postId} and userName = '${userName}' and userSchool = '${userSchool}' 
-      and userSchNum = '${userSchNum}' and userPart = '${userPart}';
+      DELETE FROM isliked WHERE post_id = ${postId} and userAccount = '${userAccount}';
       `,function(error, result){
       if (error) {throw error}
       if (result.affectedRows > 0) {

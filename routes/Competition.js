@@ -75,7 +75,7 @@ const upload = multer({
 
 // 콩쿨 게시판 글쓰기
 router.post('/post', upload.array('img'), (req, res) => {
-
+  
   const {comptNum, userAccount, userName, userSchool, userSchNum, userPart,
     songTitle, songWriter, songUri} = req.query;
 
@@ -87,10 +87,9 @@ router.post('/post', upload.array('img'), (req, res) => {
   })
 
   db.query(`
-    INSERT IGNORE INTO competitionentry (comptNum, userAccount, userName, userSchool, 
-    userSchNum, userPart, songUri, title, profileImage) VALUES 
-    ('${comptNum}', '${userAccount}', '${userName}', '${userSchool}', '${userSchNum}',
-     '${userPart}', '${songUri}', '${songTitle}-${songWriter}', '${imageNames[0]}');
+    INSERT IGNORE INTO competitionentry (comptNum, userAccount, userName, userSchool, userSchNum, userPart, songUri, title, profileImage) VALUES 
+    ('${comptNum}', '${userAccount}', '${userName}', '${userSchool}', '${userSchNum}', '${userPart}',
+    '${songUri}', '${songTitle}-${songWriter}', '${imageNames[0]}');
     `, function(error, result){
       if (error) {throw error}
       if (result.affectedRows > 0) {  
@@ -102,6 +101,58 @@ router.post('/post', upload.array('img'), (req, res) => {
       }
     }
   )
+
+});
+
+// 심사평 가져오기
+router.get('/getevaluate/:id', (req, res) => {
+
+  var id = req.params.id;
+  db.query(`
+  SELECT * FROM evaluate WHERE post_id = '${id}';
+  `, function(error, result) {
+    if (error) throw error;
+    if (result.length > 0) {
+      res.send(result);
+      res.end();
+    } else {              
+      res.send(error);
+      res.end();
+    }            
+  });
+
+});
+
+// 심사평 글쓰기
+router.post('/evaluate', (req, res) => {
+  
+  const {post_id, userAccount, scoreSinging, scoreExpress, scoreLyrics, evaluateText} = req.body;
+
+  // 심사평 썻는지 파악하기
+  db.query(`SELECT * FROM evaluate WHERE post_id = '${post_id}' and userAccount = '${userAccount}';
+  `, function(error, result){
+    if (error) {throw error}
+    if (result.length === 0) {  
+      db.query(`
+        INSERT IGNORE INTO evaluate (post_id, userAccount, scoreSinging, scoreExpress, scoreLyrics, evaluateText) VALUES 
+        ('${post_id}', '${userAccount}', '${scoreSinging}', '${scoreExpress}', '${scoreLyrics}', '${evaluateText}');
+        `, function(error, result){
+          if (error) {throw error}
+          if (result.affectedRows > 0) {  
+            res.send(true);
+            res.end();
+          } else {
+            res.send(false);  
+            res.end();
+          }
+        }
+      )
+    } else {
+      res.send('이미있음');
+      res.end();
+  }})
+  
+  
 });
 
 
