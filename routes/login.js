@@ -253,16 +253,22 @@ router.post('/verifytoken', (req,res)=>{
 
 // logister
 router.post('/logisterdo', function(req, res, next){
-  const { userAccount, userName, userSchool, userSchNum, userPart, userURL } = req.body;
+  const { email, name, userSchool, userSchNum, userPart, userURL,
+          checkUsingPolicy, checkPersonalInfo, checkContentsRestrict, checkInfoToOthers, checkServiceNotifi } = req.body.userData;
+  
   db.query(`
-  INSERT IGNORE INTO user (userAccount, userName, userSchool, userSchNum, userPart, userURL) VALUES 
-  ('${userAccount}', '${userName}', '${userSchool}', '${userSchNum}', '${userPart}', '${userURL}');
+  INSERT IGNORE INTO user (userAccount, userName, userSchool, userSchNum, userPart, userURL, 
+    checkUsingPolicy, checkPersonalInfo, checkContentsRestrict, checkInfoToOthers, checkServiceNotifi) VALUES 
+  ('${email}', '${name}', '${userSchool}', '${userSchNum}', '${userPart}', '${userURL}',
+  '${checkUsingPolicy}', '${checkPersonalInfo}', '${checkContentsRestrict}', '${checkInfoToOthers}', '${checkServiceNotifi}');
   `,function(error, result){
   if (error) {throw error}
   if (result.affectedRows > 0) {  
-    res.send(userAccount);
+    console.log('성공');
+    res.send(email);
     res.end();
   } else {
+    console.log('실패');
     res.send("");  
     res.end();
   }})

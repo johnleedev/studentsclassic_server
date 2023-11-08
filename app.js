@@ -86,7 +86,7 @@ app.get('/getsuggestions', (req, res) => {
 });
 
 
-// 댓글 입력하기
+// 제안 입력하기
 app.post('/suggestion', (req, res) => {
   const { content, date, userAccount, userName, userSchool, userSchNum, userPart } = req.body;
   db.query(`
@@ -102,6 +102,24 @@ app.post('/suggestion', (req, res) => {
     res.end();
   }})
 });
+
+// 제안 삭제하기
+app.post('/deletesuggestion', (req, res) => {
+  const { postID, userAccount } = req.body;
+  db.query(`
+  DELETE FROM suggestions WHERE id = '${postID}' and userAccount = '${userAccount}';
+  `, function(error, result){
+  if (error) {throw error}
+  if (result.affectedRows > 0) {  
+    res.send(true);
+    res.end();
+  } else {
+    res.send(error);  
+    res.end();
+  }})
+});
+
+
 
 
 
