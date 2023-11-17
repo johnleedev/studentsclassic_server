@@ -28,25 +28,20 @@ router.post('/login/:url', async (req, res) => {
 
     const userEmail = url.includes('kakao') ? result.data.kakao_account.email : result.data.response.email;
     const userName = url.includes('kakao') ? result.data.kakao_account.name : result.data.response.name;
-    const userID = url.includes('kakao') ? result.data.id : result.data.response.id;
     const SECRET_KEY = secretKey.key;
     const userURL = url.includes('kakao') ? 'kakao' : 'naver';
-    const date = new Date();
 
     // refreshToken 만들기
-    const refreshToken = jwt.sign({ type: 'JWT', USER_ID: userID }, SECRET_KEY, {
+    const refreshToken = jwt.sign({ type: 'JWT', USER_ID: userEmail }, SECRET_KEY, {
       expiresIn: '30d',
       issuer: 'studentsclassic'
     });
 
     // 회원인지 파악하기
-    db.query(`SELECT * FROM user WHERE userAccount = '${userEmail}' and userName = '${userName}';
+    db.query(`SELECT * FROM user WHERE userAccount = '${userEmail}';
     `, function(error, result){
       if (error) {throw error}
       if (result.length === 0) {  
-        db.query(
-          `INSERT IGNORE INTO accesstoken (userID, token, date) VALUES ('${userID}', '${AccessToken}', '${date}')`
-        );
         const userData = {}
         userData.email = userEmail;
         userData.name = userName;
@@ -65,9 +60,6 @@ router.post('/login/:url', async (req, res) => {
           res.json(userData);
           res.end();
         } else {
-          db.query(
-            `INSERT IGNORE INTO accesstoken (userID, token, date) VALUES ('${userID}', '${AccessToken}', '${date}')`
-          );
           db.query(
             `UPDATE user SET userURL = '${userURL}' WHERE userAccount = '${userData.userAccount}'`
           );
@@ -85,11 +77,9 @@ router.post('/login/:url', async (req, res) => {
 router.post('/loginsocial/apple', async (req, res) => {
   
   const { userInfo } = req.body;
-  const { AccessToken } = req.body;
   const { userFullName } = req.body;
 
   const userEmail = userInfo.email;
-  const userID = userInfo.c_hash;
   const familyName = userFullName.familyName;
   const givenName = userFullName.givenName;
   
@@ -97,10 +87,9 @@ router.post('/loginsocial/apple', async (req, res) => {
     const userName = `${familyName}${givenName}`;
     const SECRET_KEY = secretKey.key;
     const userURL = 'apple';
-    const date = new Date();
 
     // refreshToken 만들기
-    const refreshToken = jwt.sign({ type: 'JWT', USER_ID: userID }, SECRET_KEY, {
+    const refreshToken = jwt.sign({ type: 'JWT', USER_ID: userEmail }, SECRET_KEY, {
       expiresIn: '30d',
       issuer: 'studentsclassic'
     });
@@ -110,9 +99,6 @@ router.post('/loginsocial/apple', async (req, res) => {
     `, function(error, result){
       if (error) {throw error}
       if (result.length === 0) {  
-        db.query(
-          `INSERT IGNORE INTO accesstoken (userID, token, date) VALUES ('${userID}', '${AccessToken}', '${date}')`
-        );
         const userData = {}
         userData.email = userEmail;
         userData.name = userName;
@@ -133,9 +119,6 @@ router.post('/loginsocial/apple', async (req, res) => {
           res.json(userData);
           res.end();
         } else {
-          db.query(
-            `INSERT IGNORE INTO accesstoken (userID, token, date) VALUES ('${userID}', '${AccessToken}', '${date}')`
-          );
           db.query(
             `UPDATE user SET userURL = '${userURL}' WHERE userAccount = '${userData.userAccount}'`
           );
@@ -154,17 +137,14 @@ router.post('/loginsocial/apple', async (req, res) => {
 router.post('/loginsocial/google', async (req, res) => {
 
   const { user } = req.body;
-  const { AccessToken } = req.body;
 
   try {
     const userEmail = user.email;
-    const userID = user.uid;
     const userURL = 'google';
     const SECRET_KEY = secretKey.key;
-    const date = new Date();
 
     // refreshToken 만들기
-    const refreshToken = jwt.sign({ type: 'JWT', USER_ID: userID }, SECRET_KEY, {
+    const refreshToken = jwt.sign({ type: 'JWT', USER_ID: userEmail }, SECRET_KEY, {
       expiresIn: '30d',
       issuer: 'studentsclassic'
     });
@@ -174,9 +154,6 @@ router.post('/loginsocial/google', async (req, res) => {
     `, function(error, result){
       if (error) {throw error}
       if (result.length === 0) {  
-        db.query(
-          `INSERT IGNORE INTO accesstoken (userID, token, date) VALUES ('${userID}', '${AccessToken}', '${date}')`
-        );
         const userData = {}
         userData.email = userEmail;
         userData.userURL = userURL;
@@ -194,9 +171,6 @@ router.post('/loginsocial/google', async (req, res) => {
           res.json(userData);
           res.end();
         } else {
-          db.query(
-            `INSERT IGNORE INTO accesstoken (userID, token, date) VALUES ('${userID}', '${AccessToken}', '${date}')`
-          );
           db.query(
             `UPDATE user SET userURL = '${userURL}' WHERE userAccount = '${userData.userAccount}'`
           );
@@ -216,7 +190,8 @@ router.post('/loginsocial/google', async (req, res) => {
 router.post('/verifytoken', (req,res)=>{
   const token = req.body.verifyToken;
   const copy = jwt.decode(token);
-  const userID = copy.USER_ID;
+  
+  const userAccount = copy.USER_ID;
   const SECRET_KEY = secretKey.key;
   const userData = {}
 
@@ -225,7 +200,7 @@ router.post('/verifytoken', (req,res)=>{
     if(error) {
       if(error.name === 'TokenExpiredError'){
         // user찾아보기
-        db.query(`SELECT userId FROM accesstoken WHERE userId = '${userID}';
+        db.query(`SELECT userAccount FROM user WHERE userAccount = '${userAccount}';
         `,function(error, result){
           if (error) {throw error}
           if (result.length === 0) {  
@@ -234,14 +209,16 @@ router.post('/verifytoken', (req,res)=>{
             res.end();
           } else {
             // 다시 발급해주기
-            var refreshToken = jwt.sign({type: 'JWT', USER_ID : userID}, SECRET_KEY, {expiresIn: '1d', issuer: 'studentsclassic'});
+            var refreshToken = jwt.sign({type: 'JWT', USER_ID : userAccount}, SECRET_KEY, {
+              expiresIn: '3d', issuer: 'studentsclassic'
+            });
             userData.refreshToken = refreshToken;
             userData.isUser = true;
             res.json(userData);
             res.end();
         }})
       };  
-    } else if (decoded.USER_ID === userID) {
+    } else if (decoded.USER_ID === userAccount) {
      // torken이 유효할 때
       res.send('success');
       res.end();
@@ -276,20 +253,14 @@ router.post('/logisterdo', function(req, res, next){
 
 
 router.post('/deleteaccount', function(req, res, next){
-  const { refreshToken, userName, userSchool, userSchNum, userPart } = req.body;
-
-  // 토큰 검증
-  const token = req.body.refreshToken;
-  const copy = jwt.decode(token);
-  const userID = copy.USER_ID;
+  const { userAccount, userName } = req.body;
     
   // 회원 정보 삭제
   db.query(`
-  DELETE FROM user WHERE userName = '${userName}' and userSchool = '${userSchool}' and userSchNum = '${userSchNum}' and userPart = '${userPart}'
+  DELETE FROM user WHERE userAccount = '${userAccount}' and userName = '${userName}';
   `,function(error, result){
   if (error) {throw error}
   if (result.affectedRows > 0) {  
-    db.query(`DELETE FROM accesstoken WHERE userID = '${userID}'`);
     res.send(true);
     res.end();
   } else {

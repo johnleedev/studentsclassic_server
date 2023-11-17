@@ -15,8 +15,7 @@ admin.initializeApp({
 
 
 // 알림 보내기
-router.post('/allsend', async (req, res) => {
-  
+router.post('/allsendnotifi', async (req, res) => {
   const { notifiTitle, notifiMessage } = req.body;
   const today = new Date();
   const year = today.getFullYear();
@@ -53,10 +52,10 @@ router.post('/allsend', async (req, res) => {
       },
       apns: {
         payload: { aps: { 'mutable-content': 1 } },
-        fcm_options: { image: 'image-url'}
+        fcm_options: { image: 'https://www.studentsclassic.com/img/appicon.png'}
       },
       android: {
-        notification: { image: 'image-url' }
+        notification: { image: 'https://www.studentsclassic.com/img/appicon.png' }
       },
     }
 
@@ -65,7 +64,7 @@ router.post('/allsend', async (req, res) => {
         .messaging()
         .sendEachForMulticast(message)
         .then(function (response) {
-          console.log('Successfully sent', response.successCount);
+          // console.log('Successfully sent', response.successCount);
           res.json(notifiData);
           res.end();
         })

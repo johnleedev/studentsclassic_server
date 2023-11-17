@@ -74,9 +74,11 @@ router.post('/posts/:postId/edit', (req, res) => {
 
 // 게시글 삭제하기
 router.post('/posts/:postId/delete', (req, res) => {
-  const { postId, userName, userSchool, userSchNum } = req.body;
+  const { postId, userAccount } = req.body;
+  db.query(`DELETE FROM comments WHERE post_id = '${postId}';`);
+  db.query(`DELETE FROM isliked WHERE post_id = '${postId}';`);
   db.query(`
-  DELETE FROM posts WHERE id = '${postId}' and userName = '${userName}' and userSchool = '${userSchool}'and userSchNum = '${userSchNum}'
+  DELETE FROM posts WHERE id = '${postId}' and userAccount = '${userAccount}';
   `,function(error, result){
   if (error) {throw error}
   if (result.affectedRows > 0) {
@@ -122,7 +124,7 @@ router.post('/comments', (req, res) => {
 });
 
 
-// 게시글 삭제하기
+// 댓글 삭제하기
 router.post('/comments/delete', (req, res) => {
   const { ID, post_id, userAccount } = req.body;
   db.query(`

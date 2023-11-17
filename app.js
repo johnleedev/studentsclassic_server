@@ -8,6 +8,7 @@ const compression = require('compression');
 const helmet = require('helmet');
 var cors = require('cors');
 var parseurl = require('parseurl');
+const multer  = require('multer')
 
 // 라우터들
 var loginRouter = require('./routes/login')
@@ -36,8 +37,39 @@ app.use(compression());
 app.use(helmet());
 app.use(cors());
 
-app.listen(80, ()=>{
+app.listen(8000, ()=>{
   console.log('server is running')
+});
+
+
+// 앱 상태 가져오기 ////
+app.get('/getappstate', (req, res) => {
+  db.query(`
+  select * from appstate;
+  `, function(error, result){
+  if (error) {throw error}
+  if (result.length > 0) {
+    res.send(result);
+    res.end();
+  } else {
+    res.send(error);  
+    res.end();
+  }})
+});
+
+// 광고 데이터 가져오기 ////
+app.get('/getadvertise', (req, res) => {
+  db.query(`
+  select * from advertise;
+  `, function(error, result){
+  if (error) {throw error}
+  if (result.length > 0) {
+    res.send(result);
+    res.end();
+  } else {
+    res.send(error);  
+    res.end();
+  }})
 });
 
 // Schoollist 데이터 가져오기 ////
@@ -55,6 +87,23 @@ app.get('/schoollist', (req, res) => {
   }})
 });
 
+// 특정 학교 유저 정보 가져오기 ////
+app.get('/getusers/:school', (req, res) => {
+  const userSchool = req.params.school;
+  db.query(`
+  select * from user WHERE userSchool = '${userSchool}';
+  `, function(error, result){
+  if (error) {throw error}
+  if (result.length > 0) {
+    res.send(result);
+    res.end();
+  } else {
+    res.send(error);  
+    res.end();
+  }})
+});
+
+
 // News 데이터 가져오기 ////
 app.get('/getnews', (req, res) => {
   db.query(`
@@ -70,7 +119,7 @@ app.get('/getnews', (req, res) => {
   }})
 });
 
-// News 데이터 가져오기 ////
+// 제안 목록 가져오기 
 app.get('/getsuggestions', (req, res) => {
   db.query(`
   select * from suggestions;
@@ -120,8 +169,90 @@ app.post('/deletesuggestion', (req, res) => {
 });
 
 
+// 추가 프로필 데이터 가져오기 ////
+app.get('/getprofile/:user', (req, res) => {
+  var userAccount = req.params.user;
+  db.query(`
+  select * from user WHERE userAccount = '${userAccount}';
+  `, function(error, result){
+  if (error) {throw error}
+  if (result.length > 0) {
+    const carrerInputsCopy = JSON.parse(result[0].carrerInputs);
+    const videoLinksCopy = JSON.parse(result[0].videoLinks);
+    const imageNamesCopy = JSON.parse(result[0].imageNames);
+    const data = {
+      ...result[0],
+      carrerInputs : carrerInputsCopy,
+      videoLinks : videoLinksCopy,
+      imageNames : imageNamesCopy
+    }
+    res.send(data);
+    res.end();
+  } else {
+    res.send(error);  
+    res.end();
+  }})
+});
 
 
+// 날짜 생성하기
+let today = new Date();
+let year = today.getFullYear();
+let monthcopy = today.getMonth() + 1 ;
+let month = monthcopy < 10 ? `0${monthcopy}` : `${monthcopy}`;
+let daycopy = today.getDay();
+let day = daycopy < 10 ? `0${daycopy}` : `${daycopy}`;
+let currentDate = `${year}${month}${day}`;
+
+
+// 사진 파일 저장 미들웨어
+const upload = multer({
+  storage : multer.diskStorage({
+    destination(req, file, done) { 
+        done(null, 'build/images/upload_profile/')
+    }, 
+    filename(req, file, done) {
+        done(null, `${currentDate}`+"_"+`${file.originalname}`);
+    }
+  })
+})
+
+// 프로필 정보 업데이트 공통 함수
+const updateProfile = (req, res, hasPhoto) => {
+  const { userAccount, userName, contactWhich, contactNum, carrerInputs, videoLinks, imageNamesOrigin } = req[hasPhoto ? 'query' : 'body'];
+
+  const carrerInputsCopy = JSON.stringify(carrerInputs);
+  const videoLinksCopy = JSON.stringify(videoLinks);
+
+  const imageNames = hasPhoto ? req.files.map(item => `${currentDate}_${item.originalname}`) : imageNamesOrigin;
+  const imageNamesCopy = JSON.stringify(imageNames);
+
+  db.query(`
+    UPDATE user SET 
+      contactWhich = '${contactWhich}', 
+      contactNum = '${contactNum}', 
+      carrerInputs = '${carrerInputsCopy}', 
+      videoLinks = '${videoLinksCopy}', 
+      imageNames = '${imageNamesCopy}'
+    WHERE userAccount = '${userAccount}' AND userName = '${userName}';
+  `, (error, result) => {
+    if (error) {
+      throw error;
+    }
+    res.send(result.affectedRows > 0);
+    res.end();
+  });
+};
+
+// 프로필 정보 추가 입력하기 (사진 포함)
+app.post('/profilerevisewithphoto', upload.array('img'), (req, res) => {
+  updateProfile(req, res, true);
+});
+
+// 프로필 정보 추가 입력하기 (사진 미포함)
+app.post('/profilerevisewithoutphoto', (req, res) => {
+  updateProfile(req, res, false);
+});
 
 
 // 리액트 연결하기 ----------------------------------------------------------------- //
