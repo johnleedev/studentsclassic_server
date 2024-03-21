@@ -16,7 +16,7 @@ router.get('/posts/get', (req, res) => {
       res.send(result);
       res.end();
     } else {              
-      res.send(error);
+      res.send(false);
       res.end();
     }            
   });
@@ -33,7 +33,7 @@ router.post('/posts/:postId/views', (req, res) => {
     res.send(true);
     res.end();
   } else {
-    res.send(error);
+    res.send(false);
     res.end();
   }})
 });
@@ -50,7 +50,7 @@ router.post('/posts', (req, res) => {
     res.send(true);
     res.end();
   } else {
-    res.send(error);  
+    res.send(false);  
     res.end();
   }})
 });
@@ -67,7 +67,7 @@ router.post('/posts/:postId/edit', (req, res) => {
     res.send(true);
     res.end();
   } else {
-    res.send(error);  
+    res.send(false);  
     res.end();
   }})
 });
@@ -85,7 +85,7 @@ router.post('/posts/:postId/delete', (req, res) => {
     res.send(true);
     res.end();
   } else {
-    res.send(error);  
+    res.send(false);  
     res.end();
   }})
 });
@@ -101,7 +101,7 @@ router.get('/comments/:postId', (req, res) => {
     res.send(result);
     res.end();
   } else {
-    res.send(error);  
+    res.send(false);  
     res.end();
   }})
 });
@@ -118,7 +118,7 @@ router.post('/comments', (req, res) => {
     res.send(true);
     res.end();
   } else {
-    res.send(error);  
+    res.send(false);  
     res.end();
   }})
 });
@@ -135,17 +135,10 @@ router.post('/comments/delete', (req, res) => {
     res.send(true);
     res.end();
   } else {
-    res.send(error);  
+    res.send(false);  
     res.end();
   }})
 });
-
-
-
-
-
-
-
 
 
 // 좋아요 게시글 데이터 가져오기
@@ -183,10 +176,10 @@ router.post('/posts/:postID/isliked', (req, res) => {
       if (result.affectedRows > 0) {
         res.send(true); res.end();
       } else {
-        res.send(error); res.end();
+        res.send(false); res.end();
       }})
     } else {
-      res.send(error); res.end();
+      res.send(false); res.end();
     }})
   } else if (isLiked === true) {
     db.query(`
@@ -202,11 +195,11 @@ router.post('/posts/:postID/isliked', (req, res) => {
         res.send(false);
         res.end();
       } else {
-        res.send(error);
+        res.send(false);
         res.end();
       }})
     } else {
-      res.send(error);
+      res.send(false);
       res.end();
     }})
   }

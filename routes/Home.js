@@ -1,5 +1,8 @@
 const express = require('express');
 const router = express.Router()
+var cors = require('cors');
+router.use(cors());
+
 router.use(express.json()); // axios 전송 사용하려면 이거 있어야 함
 const { db } = require('../db');
 const multer  = require('multer')
@@ -66,6 +69,26 @@ if (result.length > 0) {
     res.send(error);  
     res.end();
 }})
+});
+
+
+// News 데이터 입력오기 ////
+router.post('/inputnews', (req, res) => {
+
+  const { newsTitle, newsDate, newsAuthor, newsLink, newsImageUrl, newsMessage } = req.body;
+ 
+  db.query(`
+  INSERT IGNORE INTO news (title, date, author, link, image, content) VALUES 
+      ('${newsTitle}', '${newsDate}', '${newsAuthor}', '${newsLink}', '${newsImageUrl}', '${newsMessage}');
+  `, function(error, result){
+  if (error) {throw error}
+  if (result.affectedRows > 0) {
+      res.send(true);
+      res.end();
+  } else {
+      res.send(error);  
+      res.end();
+  }})
 });
 
 // 제안 목록 가져오기 

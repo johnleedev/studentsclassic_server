@@ -11,25 +11,24 @@ var cors = require('cors');
 // 라우터들
 var loginRouter = require('./routes/login')
 var HomeRouter = require('./routes/Home')
+var StudyRouter = require('./routes/Study')
+var MentoringRouter = require('./routes/Mentoring')
 var BoardRouter = require('./routes/Board')
-var CompetitionRouter = require('./routes/Competition')
+var MypageRouter = require('./routes/Mypage')
 var NoticeRouter = require('./routes/Notice')
 var Notification = require('./routes/Notification')
-var Concours = require('./routes/Concours')
-var Concert = require('./routes/Concert')
-var Recruit = require('./routes/Recruit')
-var MypageRouter = require('./routes/Mypage')
+var LyricsSaveRouter = require('./routes/LyricsSave')
+var AppAdminRouter = require('./routes/AppAdmin')
 app.use('/login', loginRouter);
 app.use('/home', HomeRouter);
+app.use('/study', StudyRouter);
+app.use('/mentoring', MentoringRouter);
 app.use('/board', BoardRouter);
-app.use('/competition', CompetitionRouter);
+app.use('/lyricssave', LyricsSaveRouter);
 app.use('/notice', NoticeRouter);
 app.use('/notification', Notification);
-app.use('/concours', Concours);
-app.use('/concert', Concert);
-app.use('/recruit', Recruit);
 app.use('/mypage', MypageRouter);
-
+app.use('/appadmin', AppAdminRouter);
 
 app.use(express.static('build'));
 app.use(express.urlencoded({extended: true})) 
@@ -60,6 +59,36 @@ app.get('/getappstate', (req, res) => {
 });
 
 
+// 앱실행시, 접속 수 증가시키기
+app.post('/appusecount', (req, res) => {
+  const { date } = req.body;
+  db.query(`
+  select * from appusecount where date = '${date}'
+  `, function(error, result){
+  if (error) {throw error}
+  if (result.length > 0) {
+    db.query(`UPDATE appusecount SET count = count + 1 WHERE date = '${date}'`);
+    res.end();
+  } else {
+    db.query(`INSERT IGNORE INTO appusecount (date, count ) VALUES ('${date}', '1')`);
+    res.end();
+  }})
+});
+
+// 유저 버전 체크 증가시키기
+app.post('/appversioncheck', (req, res) => {
+  const { userAccount, version } = req.body;
+  db.query(`
+  select * from user where userAccount = '${userAccount}' and version = '${version}'
+  `, function(error, result){
+  if (error) {throw error}
+  if (result.length > 0) {
+    res.end();
+  } else {
+    db.query(`UPDATE user SET version = '${version}' WHERE userAccount = '${userAccount}'`);
+    res.end();
+  }})
+});
 
 // 리액트 연결하기 ----------------------------------------------------------------- //
 

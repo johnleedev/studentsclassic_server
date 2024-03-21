@@ -14,6 +14,51 @@ admin.initializeApp({
 });
 
 
+
+// 알림 리스트 가져오기
+router.get('/usernotifiinfo/:account', async (req, res) => {
+  var userAccount = req.params.account;
+  db.query(`SELECT notifiAll, notifiBoard, notifiInfo, notifiNotice, notifiOurConcour 
+           FROM user WHERE userAccount = '${userAccount}';
+    `, function(error, result){
+    if (error) {throw error}
+    if (result.length === 0) {  
+      res.send(false);
+      res.end();
+    } else {
+      var json = JSON.stringify(result);
+      const getData = JSON.parse(json);
+      res.json(getData);
+      res.end();
+  }})
+});
+
+
+
+// 알림 설정하기 
+router.post('/setting', async (req, res) => {
+  const { userAccount, notifiAll, notifiBoard, notifiInfo, notifiNotice, notifiOurConcour } = req.body;
+  db.query(`
+    UPDATE user SET 
+    notifiAll = '${notifiAll}',
+    notifiBoard = '${notifiBoard}',
+    notifiInfo = '${notifiInfo}',
+    notifiNotice = '${notifiNotice}',
+    notifiOurConcour = '${notifiOurConcour}'
+    WHERE userAccount = '${userAccount}'
+  `,function(error, result){
+  if (error) {throw error}
+  if (result.affectedRows > 0) {  
+    res.send(true);
+    res.end();
+  } else {
+    res.send(false);  
+    res.end();
+  }})
+});
+
+
+
 // 알림 보내기
 router.post('/allsendnotifi', async (req, res) => {
   const { notifiTitle, notifiMessage } = req.body;
@@ -31,6 +76,7 @@ router.post('/allsendnotifi', async (req, res) => {
   if (error) {throw error}
   if (result.affectedRows > 0) {  
     const notifiData = {}
+    
     notifiData.notifiTitle = notifiTitle;
     notifiData.notifiMessage = notifiMessage;
     
@@ -42,35 +88,37 @@ router.post('/allsendnotifi', async (req, res) => {
       res.send(false);
       res.end();
     } else {
-    // 토큰 리스트 가져오기
-    deviceToken = result.map((row) => row.firebaseToken);
-    // 알림 정보
-    let message = {
-      tokens: deviceToken,
-      notification: {
-        title: notifiTitle, body: notifiMessage ,
-      },
-      apns: {
-        payload: { aps: { 'mutable-content': 1 } },
-        fcm_options: { image: 'https://www.studentsclassic.com/img/appicon.png'}
-      },
-      android: {
-        notification: { image: 'https://www.studentsclassic.com/img/appicon.png' }
-      },
-    }
+      // 토큰 리스트 가져오기
+      const deviceTokens = result.map((row) => row.firebaseToken);
 
-     // 알림 보내기 함수
-      await admin
-        .messaging()
-        .sendEachForMulticast(message)
-        .then(function (response) {
-          // console.log('Successfully sent', response.successCount);
-          res.json(notifiData);
-          res.end();
-        })
-        .catch(function (err) {
-          console.log('Error Sending message!!! : ', err)
-        })
+      // 각 토큰에 대해 알림 보내기
+      for (const token of deviceTokens) {
+        const message = {
+          token: token,
+          notification: {
+            title: notifiTitle,
+            body: notifiMessage,
+          },
+          apns: {
+            payload: { aps: { 'mutable-content': 1 } },
+            fcm_options: { image: 'https://www.studentsclassic.com/img/appicon.png'}
+          },
+          android: {
+            notification: { image: 'https://www.studentsclassic.com/img/appicon.png' }
+          },
+        };
+
+        try {
+          const response = await admin.messaging().send(message);
+          console.log('Successfully sent message:', response);
+        } catch (error) {
+          console.log('Error sending message:', error);
+        }
+      }
+
+      res.json(notifiData);
+      res.end();
+
       }
     }
     ) 

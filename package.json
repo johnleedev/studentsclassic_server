@@ -3,6 +3,7 @@
     "apple-signin-auth": "^1.7.5",
     "axios": "^1.4.0",
     "body-parser": "^1.20.2",
+    "cheerio": "^1.0.0-rc.12",
     "compression": "^1.7.4",
     "connect-flash": "^0.1.1",
     "cors": "^2.8.5",
@@ -19,6 +20,7 @@
     "passport": "^0.6.0",
     "passport-local": "^1.0.0",
     "path": "^0.12.7",
+    "puppeteer": "^21.7.0",
     "session-file-store": "^1.5.0"
   },
   "scripts": {

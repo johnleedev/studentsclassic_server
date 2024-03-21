@@ -241,11 +241,9 @@ router.post('/logisterdo', function(req, res, next){
   `,function(error, result){
   if (error) {throw error}
   if (result.affectedRows > 0) {  
-    console.log('성공');
     res.send(email);
     res.end();
   } else {
-    console.log('실패');
     res.send("");  
     res.end();
   }})
